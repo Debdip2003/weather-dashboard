@@ -32,23 +32,38 @@ const ForecastDisplay = ({ forecast }) => {
     <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
       <h3 className="text-2xl font-bold text-gray-800 mb-6">5-Day Forecast</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {forecast.map((day, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-lg p-4 text-center shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200"
-          >
-            <div className="text-sm font-semibold text-gray-600 mb-3">
-              {formatDate(day.date)}
+        {forecast.map((day, index) => {
+          let tempDisplay = "N/A";
+          if (typeof day.temp_c === "number") {
+            tempDisplay = `${Math.round(day.temp_c)}°C`;
+          } else if (
+            typeof day.temp === "number" &&
+            (day.temp_c === null || isNaN(day.temp_c))
+          ) {
+            tempDisplay = `${Math.round(day.temp)}K`;
+          } else if (typeof day.temp_f === "number") {
+            tempDisplay = `${Math.round(day.temp_f)}°F`;
+          }
+          return (
+            <div
+              key={index}
+              className="bg-white rounded-lg p-4 text-center shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200"
+            >
+              <div className="text-sm font-semibold text-gray-600 mb-3">
+                {formatDate(day.date)}
+              </div>
+              <div className="text-4xl mb-3">
+                {getWeatherIcon(day.condition)}
+              </div>
+              <div className="text-2xl font-bold text-gray-800 mb-2">
+                {tempDisplay}
+              </div>
+              <div className="text-sm text-gray-600 mb-4 capitalize">
+                {day.condition.text}
+              </div>
             </div>
-            <div className="text-4xl mb-3">{getWeatherIcon(day.condition)}</div>
-            <div className="text-2xl font-bold text-gray-800 mb-2">
-              {Math.round(day.temp_c)}°C
-            </div>
-            <div className="text-sm text-gray-600 mb-4 capitalize">
-              {day.condition.text}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

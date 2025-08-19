@@ -50,6 +50,31 @@ const WeatherDisplay = ({ weather }) => {
     });
   };
 
+  // Show Kelvin if temp_c is null but temp is present (Kelvin), else show F
+  let tempDisplay = "N/A";
+  if (typeof current.temp_c === "number") {
+    tempDisplay = `${Math.round(current.temp_c)}°C`;
+  } else if (
+    typeof weather.current?.temp === "number" &&
+    (current.temp_c === null || isNaN(current.temp_c))
+  ) {
+    tempDisplay = `${Math.round(weather.current.temp)}K`;
+  } else if (typeof current.temp_f === "number") {
+    tempDisplay = `${Math.round(current.temp_f)}°F`;
+  }
+
+  let feelsLikeDisplay = "N/A";
+  if (typeof current.feelslike_c === "number") {
+    feelsLikeDisplay = `${Math.round(current.feelslike_c)}°C`;
+  } else if (
+    typeof weather.current?.feels_like === "number" &&
+    (current.feelslike_c === null || isNaN(current.feelslike_c))
+  ) {
+    feelsLikeDisplay = `${Math.round(weather.current.feels_like)}K`;
+  } else if (typeof current.temp_f === "number") {
+    feelsLikeDisplay = `${Math.round(current.temp_f)}°F`;
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
       {/* Location Header */}
@@ -74,13 +99,13 @@ const WeatherDisplay = ({ weather }) => {
             {getWeatherIcon(current.condition)}
           </div>
           <div className="text-5xl md:text-6xl font-bold text-gray-800 mb-3">
-            {Math.round(current.temp_c)}°C
+            {tempDisplay}
           </div>
           <div className="text-xl text-gray-600 mb-3 capitalize">
             {current.condition.text}
           </div>
           <div className="text-lg text-gray-500">
-            Feels like {Math.round(current.feelslike_c)}°C
+            Feels like {feelsLikeDisplay}
           </div>
         </div>
 

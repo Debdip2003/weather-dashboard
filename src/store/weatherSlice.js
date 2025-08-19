@@ -45,34 +45,87 @@ export const fetchWeatherData = createAsyncThunk(
           lon: weatherData.coord?.lon,
         },
         current: {
-          temp_c: weatherData.main?.temp - 273.15, // Convert from Kelvin to Celsius
-          temp_f: ((weatherData.main?.temp - 273.15) * 9) / 5 + 32, // Convert to Fahrenheit
-          feelslike_c: weatherData.main?.feels_like - 273.15,
+          temp_c:
+            typeof weatherData.main?.temp === "number"
+              ? weatherData.main.temp - 273.15
+              : null,
+          temp_f:
+            typeof weatherData.main?.temp === "number"
+              ? ((weatherData.main.temp - 273.15) * 9) / 5 + 32
+              : null,
+          feelslike_c:
+            typeof weatherData.main?.feels_like === "number"
+              ? weatherData.main.feels_like - 273.15
+              : null,
           humidity: weatherData.main?.humidity,
-          wind_kph: weatherData.wind?.speed * 3.6, // Convert from m/s to km/h
+          wind_kph:
+            typeof weatherData.wind?.speed === "number"
+              ? weatherData.wind.speed * 3.6
+              : null,
           wind_dir: weatherData.wind?.deg,
           pressure_mb: weatherData.main?.pressure,
           uv: 0, // OpenWeather doesn't provide UV in current weather
-          vis_km: weatherData.visibility / 1000, // Convert from meters to km
+          vis_km:
+            typeof weatherData.visibility === "number"
+              ? weatherData.visibility / 1000
+              : null,
           condition: {
             text: weatherData.weather?.[0]?.description || "",
             icon: weatherData.weather?.[0]?.icon || "",
           },
           last_updated: new Date().toISOString(),
         },
-        forecast:
-          forecastData.list?.slice(0, 5).map((item) => ({
-            date: new Date(item.dt * 1000),
-            temp_c: item.main?.temp - 273.15,
-            temp_f: ((item.main?.temp - 273.15) * 9) / 5 + 32,
-            humidity: item.main?.humidity,
-            wind_kph: item.wind?.speed * 3.6,
-            wind_dir: item.wind?.deg,
-            condition: {
-              text: item.weather?.[0]?.description || "",
-              icon: item.weather?.[0]?.icon || "",
-            },
-          })) || [],
+        // Group forecast data by day and pick a representative (midday or closest) entry for each day
+        forecast: (() => {
+          if (!forecastData.list) return [];
+          const daysMap = {};
+          forecastData.list.forEach((item) => {
+            const date = new Date(item.dt * 1000);
+            // Use only the date part (YYYY-MM-DD)
+            const dayKey = date.toISOString().split("T")[0];
+            if (!daysMap[dayKey]) daysMap[dayKey] = [];
+            daysMap[dayKey].push(item);
+          });
+          // Get the next 5 unique days (skip today if partial)
+          const allDays = Object.keys(daysMap).sort();
+          // Optionally skip today if it's partial (less than 8 intervals)
+          let startIdx = 0;
+          if (daysMap[allDays[0]] && daysMap[allDays[0]].length < 8) {
+            startIdx = 1;
+          }
+          const next5Days = allDays.slice(startIdx, startIdx + 5);
+          return next5Days.map((dayKey) => {
+            const dayItems = daysMap[dayKey];
+            // Pick the item closest to 12:00 (midday)
+            const middayItem = dayItems.reduce((prev, curr) => {
+              const prevHour = Math.abs(
+                new Date(prev.dt * 1000).getHours() - 12
+              );
+              const currHour = Math.abs(
+                new Date(curr.dt * 1000).getHours() - 12
+              );
+              return currHour < prevHour ? curr : prev;
+            });
+            return {
+              date: new Date(middayItem.dt * 1000),
+              temp_c:
+                typeof middayItem.main?.temp === "number"
+                  ? middayItem.main.temp - 273.15
+                  : null,
+              temp_f:
+                typeof middayItem.main?.temp === "number"
+                  ? ((middayItem.main.temp - 273.15) * 9) / 5 + 32
+                  : null,
+              humidity: middayItem.main?.humidity,
+              wind_kph: middayItem.wind?.speed * 3.6,
+              wind_dir: middayItem.wind?.deg,
+              condition: {
+                text: middayItem.weather?.[0]?.description || "",
+                icon: middayItem.weather?.[0]?.icon || "",
+              },
+            };
+          });
+        })(),
       };
     } catch (error) {
       return rejectWithValue(
