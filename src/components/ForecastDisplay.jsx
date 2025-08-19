@@ -16,30 +16,6 @@ const ForecastDisplay = ({ forecast }) => {
     return "🌤️";
   };
 
-  const getWindDirection = (degrees) => {
-    if (typeof degrees !== "number") return degrees;
-    const directions = [
-      "N",
-      "NNE",
-      "NE",
-      "ENE",
-      "E",
-      "ESE",
-      "SE",
-      "SSE",
-      "S",
-      "SSW",
-      "SW",
-      "WSW",
-      "W",
-      "WNW",
-      "NW",
-      "NNW",
-    ];
-    const index = Math.round(degrees / 22.5) % 16;
-    return directions[index];
-  };
-
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString("en-US", {
       weekday: "short",
