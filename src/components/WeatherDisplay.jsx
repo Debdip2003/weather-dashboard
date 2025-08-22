@@ -144,7 +144,14 @@ const WeatherDisplay = ({ weather }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-90 mb-1">UV Index</p>
-              <p className="text-3xl font-bold">{current.uv}</p>
+              {current.uv !== null && current.uv !== undefined ? (
+                <p className="text-3xl font-bold">{current.uv}</p>
+              ) : (
+                <div className="flex flex-col items-start">
+                  <p className="text-base font-semibold">Stay sun safe!</p>
+                  <span className="text-lg">🧴</span>
+                </div>
+              )}
             </div>
             <div className="text-4xl">☀️</div>
           </div>
@@ -153,9 +160,16 @@ const WeatherDisplay = ({ weather }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-90 mb-1">Visibility</p>
-              <p className="text-3xl font-bold">
-                {Math.round(current.vis_km)} km
-              </p>
+              {current.vis_km !== null && current.vis_km !== undefined ? (
+                <p className="text-3xl font-bold">{`${Math.round(
+                  current.vis_km
+                )} km`}</p>
+              ) : (
+                <div className="flex flex-col items-start">
+                  <p className="text-base font-semibold">Drive carefully!</p>
+                  <span className="text-lg">🚗</span>
+                </div>
+              )}
             </div>
             <div className="text-4xl">👁️</div>
           </div>
